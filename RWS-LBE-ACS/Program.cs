@@ -24,12 +24,27 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 var app = builder.Build();
 
 //Conditionally run the JWT middleware for "/api/v1/send/**" only
+var apiPrefix = "/api/v1/";
+var protectedPrefixes = new[]
+{
+    apiPrefix + "send" 
+};
+
 app.UseWhen(
-    context => context.Request.Path.StartsWithSegments("/api/v1/send", StringComparison.OrdinalIgnoreCase),
-    sendBranch =>
+    ctx =>
     {
-        sendBranch.UseMiddleware<JwtInterceptorMiddleware>();
+        // if the request path starts with any of our protected prefixes…
+        var path = ctx.Request.Path;
+        return protectedPrefixes
+            .Any(p => path.StartsWithSegments(p, StringComparison.OrdinalIgnoreCase));
+    },
+    branch =>
+    {
+        // …then run the JWT interceptor on that branch.
+        branch.UseMiddleware<JwtInterceptorMiddleware>();
     });
+ 
+
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
