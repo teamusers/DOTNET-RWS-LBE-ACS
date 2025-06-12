@@ -26,5 +26,10 @@ RUN dotnet publish "./RWS-LBE-ACS.csproj" -c $BUILD_CONFIGURATION -o /app/publis
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
 WORKDIR /app
+# 1) Copy the published output
 COPY --from=publish /app/publish .
+
+# 2) Copy your templates folder into the container so RazorLight can load them
+COPY templates ./templates
+
 ENTRYPOINT ["dotnet", "RWS-LBE-ACS.dll"]
