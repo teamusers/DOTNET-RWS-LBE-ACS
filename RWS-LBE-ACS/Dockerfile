@@ -12,24 +12,27 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["RWS-LBE-ACS/RWS-LBE-ACS.csproj", "RWS-LBE-ACS/"]
-RUN dotnet restore "./RWS-LBE-ACS/RWS-LBE-ACS.csproj"
-COPY . .
-WORKDIR "/src/RWS-LBE-ACS"
-RUN dotnet build "./RWS-LBE-ACS.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
-# This stage is used to publish the service project to be copied to the final stage
+# 1) Copy only the .csproj and restore
+COPY ["RWS-LBE-ACS.csproj", "./"]
+RUN dotnet restore "RWS-LBE-ACS.csproj"
+
+# 2) Copy the rest of your code and build
+COPY . .
+RUN dotnet build "RWS-LBE-ACS.csproj" -c $BUILD_CONFIGURATION -o /app/build
+
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./RWS-LBE-ACS.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "RWS-LBE-ACS.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/publish \
+    /p:UseAppHost=false
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
-FROM base AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-# 1) Copy the published output
-COPY --from=publish /app/publish .
 
-# 2) Copy your templates folder into the container so RazorLight can load them
+# 3) Copy publish output + templates
+COPY --from=publish /app/publish .
 COPY templates ./templates
 
-ENTRYPOINT ["dotnet", "RWS-LBE-ACS.dll"]
+ENTRYPOINT ["dotnet","RWS-LBE-ACS.dll"]
