@@ -69,9 +69,20 @@ catch
     throw new InvalidOperationException("Jwt:Secret must be a Base64-encoded string");
 }
 
+// Auto-migrate DB on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate(); // This applies any pending migrations
+}
+
+
+
 TokenInterceptor.SetJwtSecret(keyBytes);
 
 app.UseHttpsRedirection();
+
+app.UseMiddleware<AuditLogMiddleware>();
 
 app.UseAuthorization();
 
