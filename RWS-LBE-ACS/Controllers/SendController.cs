@@ -1,10 +1,7 @@
-﻿
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using RWS_LBE_ACS.Common;
-using RWS_LBE_ACS.DTOs.Requests;
+﻿using Microsoft.AspNetCore.Mvc;
+using RWS_LBE_ACS.Common; 
 using RWS_LBE_ACS.Services;
-using static RWS_LBE_ACS.DTOs.Requests.Send_email; 
+using static RWS_LBE_ACS.DTOs.Requests.Send_email;
 
 namespace RWS_LBE_ACS.Controllers
 {
@@ -20,40 +17,29 @@ namespace RWS_LBE_ACS.Controllers
         public async Task<IActionResult> PlainText([FromBody] SendPlainTextEmailRequest req)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.InvalidRequestBodyErrorResponse());
+                return BadRequest(ResponseTemplate.InvalidRequestBodyErrorResponse());
 
             await _email.SendPlainTextAsync(req.Email, req.Subject, req.PlainText, req.Attachments);
-            return Ok(new ApiResponse<object>
-            {
-                Code = Codes.SUCCESSFUL,
-                Message = "email sent",
-                Data = null
-            });
+            return Ok(ResponseTemplate.GenericSuccessResponse(null));
         }
 
         [HttpPost("template/{name}")]
-        public async Task<IActionResult> Template([FromRoute] string name,[FromBody] SendTemplateEmailRequest req)
+        public async Task<IActionResult> Template([FromRoute] string name, [FromBody] SendTemplateEmailRequest req)
         {
             if (string.IsNullOrWhiteSpace(name))
-                return BadRequest(ApiResponse.InvalidQueryParametersErrorResponse());
-            if (!ModelState.IsValid)
-                return BadRequest(ApiResponse.InvalidRequestBodyErrorResponse());
+                return BadRequest(ResponseTemplate.InvalidQueryParametersErrorResponse());
 
-            // pass the *actual* email address (req.Email) first, then subject, then template name:
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseTemplate.InvalidRequestBodyErrorResponse());
+
             await _email.SendTemplateAsync(
-                req.Email!,       // ← the real “to” address
-                req.Subject!,     // ← subject
-                name,             // ← template key (e.g. "request_email_otp")
+                req.Email!,       // recipient email
+                req.Subject!,     // email subject
+                name,             // template name
                 req.Data!,
                 req.Attachments
             );
-            return Ok(new ApiResponse<object>
-            {
-                Code = Codes.SUCCESSFUL,
-                Message = "email sent",
-                Data = null
-            });
+            return Ok(ResponseTemplate.GenericSuccessResponse(null));
         }
     }
 }
-
