@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Mail;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Communication.Email; 
@@ -89,6 +90,48 @@ namespace RWS_LBE_ACS.Services
             // Optionally inspect status or operation ID
             Console.WriteLine($"Email send status: {response.Value.Status}"); // :contentReference[oaicite:5]{index=5}
         }
+
+        public async Task SendHtmlAsync(string to, string subject, string htmlBody,
+                                List<Dictionary<string, string>>? attachments = null)
+        {
+            // Build content object with HTML
+            var emailContent = new EmailContent(subject)
+            {
+                Html = htmlBody,
+                // (optionally) provide a plain-text fallback
+                PlainText = StripTags(htmlBody)
+            };
+
+            var message = new EmailMessage(
+                senderAddress: _senderAddress,
+                recipients: new EmailRecipients(to: new[] { new EmailAddress(to) }),
+                content: emailContent
+            );
+
+            // add attachments if needed...
+            if (attachments != null)
+            {
+                foreach (var att in attachments)
+                {
+                    var bytes = File.ReadAllBytes(att["path"]);
+                    var attachment = new EmailAttachment(
+                        name: att["name"],
+                        contentType: att["contentType"],
+                        content: BinaryData.FromBytes(bytes)
+                    );
+                    message.Attachments.Add(attachment);
+                }
+            }
+
+            // Send
+            var response = await _client.SendAsync(WaitUntil.Completed, message);
+            Console.WriteLine($"Email send status: {response.Value.Status}");
+        }
+
+        // simple utility to strip HTML tags for your plain-text fallback
+        private string StripTags(string html) =>
+            Regex.Replace(html, "<.*?>", string.Empty);
+
 
         public async Task SendTemplateAsync(string to, string subject, string templateName,
                                     Dictionary<string, object> model,

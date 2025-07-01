@@ -23,6 +23,16 @@ namespace RWS_LBE_ACS.Controllers
             return Ok(ResponseTemplate.GenericSuccessResponse(null));
         }
 
+        [HttpPost("html")]
+        public async Task<IActionResult> Html([FromBody] SendHtmlEmailRequest req)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ResponseTemplate.InvalidRequestBodyErrorResponse());
+
+            await _email.SendHtmlAsync(req.Email, req.Subject, req.Html, req.Attachments);
+            return Ok(ResponseTemplate.GenericSuccessResponse(null));
+        }
+
         [HttpPost("template/{name}")]
         public async Task<IActionResult> Template([FromRoute] string name, [FromBody] SendTemplateEmailRequest req)
         {

@@ -23,6 +23,24 @@ namespace RWS_LBE_ACS.DTOs.Requests
             public List<Dictionary<string, string>>? Attachments { get; set; }
         }
 
+        public class SendHtmlEmailRequest
+        {
+            [Required]
+            [JsonPropertyName("email")]
+            public string Email { get; set; } = string.Empty;
+
+            [Required]
+            [JsonPropertyName("subject")]
+            public string Subject { get; set; } = string.Empty;
+
+            [Required]
+            [JsonPropertyName("html")]
+            public string Html { get; set; } = string.Empty;
+
+            [JsonPropertyName("attachments")]
+            public List<Dictionary<string, string>>? Attachments { get; set; }
+        }
+
         public class SendTemplateEmailRequest
         {
             [Required]
