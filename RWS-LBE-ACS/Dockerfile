@@ -7,7 +7,6 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
@@ -32,7 +31,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
 
 # 3) Copy publish output + templates
-COPY --from=publish /app/publish .
+COPY --from=publish /app/publish . 
 COPY templates ./templates
 
 ENTRYPOINT ["dotnet","RWS-LBE-ACS.dll"]
