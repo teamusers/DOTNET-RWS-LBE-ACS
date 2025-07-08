@@ -16,6 +16,7 @@
     <Content Remove="templates\request_email_otp_with_image.cshtml" />
     <Content Remove="templates\request_email_otp_with_register_link.cshtml" />
     <Content Remove="templates\withdraw_member_account_template.cshtml" />
+	<Content Remove="templates\welcome_template.cshtml" />
   </ItemGroup>
 
   <ItemGroup>
